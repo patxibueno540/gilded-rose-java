@@ -1,30 +1,204 @@
-Gilded Rose : Legacy code refactoring and testing kata
-===========
+# Gilded Rose - Guía de Tests
 
+Guía completa para ejecutar tests, generar reportes de cobertura y entender los resultados.
 
-Hi and welcome to team Gilded Rose. As you know, we are a small inn with a prime location in a prominent city ran by a friendly innkeeper named Allison. We also buy and sell only the finest goods. Unfortunately, our goods are constantly degrading in quality as they approach their sell by date. We have a system in place that updates our inventory for us. It was developed by a no-nonsense type named Leeroy, who has moved on to new adventures. Your task is to add the new feature to our system so that we can begin selling a new category of items. First an introduction to our system:
+---
 
-* All items have a SellIn value which denotes the number of days we have to sell the item
-* All items have a Quality value which denotes how valuable the item is
-* At the end of each day our system lowers both values for every item
+## 📋 Requisitos
 
-Pretty simple, right? Well this is where it gets interesting:
+- **Java 8+** (se recomienda Java 11 o superior)
+- **Gradle 8.10** (se descarga automáticamente con el wrapper)
 
-* Once the sell by date has passed, Quality degrades twice as fast
-* The Quality of an item is never negative
-* "Aged Brie" actually increases in Quality the older it gets. Once the sell by date has passed, Quality increases twice as fast
-* The Quality of an item is never more than 50
-* "Sulfuras", being a legendary item, never has to be sold or decreases in Quality
-* "Backstage passes", like aged brie, increases in Quality as it's SellIn value approaches; Quality increases by 2 when there are 10 days or less and by 3 when there are 5 days or less but Quality drops to 0 after the concert
+Verifica tu versión:
+```bash
+java -version
+```
 
-We have recently signed a supplier of conjured items. This requires an update to our system:
+---
 
-* "Conjured" items degrade in Quality twice as fast as normal items
+## 🧪 Ejecutar Tests
 
-Feel free to make any changes to the UpdateQuality method and add any new code as long as everything still works correctly. However, do not alter the Item class or Items property as those belong to the goblin in the corner who will insta-rage and one-shot you as he doesn't believe in shared code ownership (you can make the UpdateQuality method and Items property static if you like, we'll cover for you). Your work needs to be completed by Friday, February 18, 2011 08:00:00 AM PST.
+### Opción 1: Tests simples (sin reporte)
 
-Just for clarification, an item can never have its Quality increase above 50, however "Sulfuras" is a legendary item and as such its Quality is 80 and it never alters.
+```bash
+.\gradlew.bat test
+```
 
-Credits
--------
-* written by [Terry Hughes](https://twitter.com/TerryHughes)
+**Output esperado:**
+```
+GildedRoseShould > decrease_the_quality_by_one_when_not_expired PASSED
+GildedRoseShould > decrease_the_quality_by_two_when_expired PASSED
+...
+16 tests completed
+BUILD SUCCESSFUL in 2s
+```
+
+---
+
+### Opción 2: Tests con más detalle en consola
+
+```bash
+.\gradlew.bat test --info
+```
+
+Muestra logs detallados de cada paso del build.
+
+---
+
+### Opción 3: Tests con reporte JaCoCo (RECOMENDADO)
+
+```bash
+.\gradlew.bat test jacocoTestReport
+```
+
+Genera:
+- ✅ Tests ejecutados
+- 📊 Reporte de cobertura en HTML
+- 📈 Análisis por clase y línea
+
+---
+
+## 📊 Generar Reporte de Cobertura
+
+Si solo quieres el reporte sin ejecutar tests de nuevo:
+
+```bash
+.\gradlew.bat jacocoTestReport
+```
+
+---
+
+## 🔍 Leer el Reporte JaCoCo
+
+Después de ejecutar `test jacocoTestReport`, abre el reporte:
+
+```
+build/reports/jacoco/test/html/index.html
+```
+
+**En Windows:**
+```bash
+start build\reports\jacoco\test\html\index.html
+```
+
+---
+
+## 📈 Entender el Reporte
+
+### Pantalla principal
+
+| Métrica | Qué significa |
+|---------|---------------|
+| **Instructions** | Líneas de código ejecutadas (%) |
+| **Branches** | Decisiones if/else cubiertas (%) |
+| **Complexity** | Rutas de ejecución cubiertas (%) |
+| **Lines** | Líneas cubiertas (%) |
+| **Methods** | Métodos cubiertas (%) |
+
+---
+
+### Ejemplo de interpretación
+
+```
+GildedRose.java
+├─ 85% Instructions → 85% de líneas se ejecutaron en tests
+├─ 75% Branches → 75% de if/else se probaron
+├─ 90% Lines → 90% de líneas verdes
+└─ 100% Methods → Todos los métodos se ejecutaron
+```
+
+---
+
+### Colores en el código
+
+Dentro de cada archivo ves el código con colores:
+
+- 🟢 **Verde** → Línea cubierta (ejecutada en tests)
+- 🔴 **Rojo** → Línea NO cubierta (sin tests)
+- 🟡 **Amarillo** → Rama parcialmente cubierta (solo un camino del if/else)
+
+---
+
+## ✅ Mejorar Cobertura
+
+Para subir la cobertura desde 57%:
+
+1. Abre el reporte (`index.html`)
+2. Haz click en **`GildedRose.java`**
+3. Busca líneas **rojas** (sin cubrir)
+4. Escribe tests que las ejecuten
+
+**Ejemplo: Si ves `initializeItemArray()` en rojo:**
+
+```java
+@Test
+public void initialize_items_when_no_items_provided() {
+    GildedRose gildedRose = new GildedRose();
+    // Verifica que los items de ejemplo existan
+    assertEquals(6, GildedRose.getItems().size());
+}
+```
+
+---
+
+## 🎯 Objectivos de Cobertura
+
+- **< 50%** → Insuficiente
+- **50-70%** → Aceptable
+- **70-85%** → Bueno
+- **> 85%** → Excelente
+
+Para una kata, apunta a **mínimo 80%**.
+
+---
+
+## 🔧 Comandos útiles
+
+```bash
+# Tests + reporte (lo más común)
+.\gradlew.bat test jacocoTestReport
+
+# Solo tests, sin reporte
+.\gradlew.bat test
+
+# Reporte sin ejecutar tests nuevamente
+.\gradlew.bat jacocoTestReport
+
+# Un test específico
+.\gradlew.bat test --tests "*decrease_the_quality*"
+
+# Ver logs detallados
+.\gradlew.bat test --info
+
+# Limpiar y ejecutar desde cero
+.\gradlew.bat clean test jacocoTestReport
+```
+
+---
+
+## 💡 Tips
+
+- **El reporte se sobrescribe** → Cada vez que ejecutas, se regenera
+- **Guarda copias** si quieres compararlos → `cp -r build/reports/jacoco/test/html backup_reports`
+- **No commitees `/build`** → Añádelo a `.gitignore`
+- **Ejecuta tests antes de hacer push** → Así no rompes nada en la rama
+
+---
+
+## 🚨 Troubleshooting
+
+**Error: "Could not find method testCompile()"**
+→ Actualiza `build.gradle` con `testImplementation` en lugar de `testCompile`
+
+**Reporte no se genera**
+→ Ejecuta: `.\gradlew.bat clean test jacocoTestReport`
+
+**Tests pasan pero reporte muestra 0%**
+→ Asegúrate de que el plugin `jacoco` esté en `plugins { }`
+
+---
+
+## 📚 Más información
+
+- [Documentación JaCoCo](https://www.jacoco.org/jacoco/)
+- [Gradle Testing](https://docs.gradle.org/current/userguide/testing_java_project.html)

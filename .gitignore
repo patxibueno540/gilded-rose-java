@@ -21,3 +21,6 @@ local.properties
 *.log
 
 .idea/
+
+# Visual Studio Code
+.vscode/
